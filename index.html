@@ -1,13 +1,10 @@
 <!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Klima-Quiz Asien</title>
 <style>
 :root {
-  /* Layout: Atlas-Gefühl. Ein Titelbild mit den beiden Monsunpfeilen, darunter große Themenkarten.
-     Jedes Thema hat seine eigene Farbe, die sich durch Frage, Fortschritt und Auswertung zieht. */
+  /* Layout: Atlas-Gefühl. Titelbild mit den Monsunpfeilen, große Themenkarten in eigenen Farben.
+     Fragetypen: Auswahl, Mehrfachauswahl, Zuordnung, Reihenfolge, Lückentext, Zahl, Klick in Skizze. */
   --bg: #edf2f5;
   --surface: #ffffff;
   --surface-2: #f5f8fa;
@@ -50,7 +47,7 @@
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5;
   padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 main { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-h1, h2, h3 { font-family: var(--font-head); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1, h2 { font-family: var(--font-head); line-height: 1.2; margin: 0; text-wrap: balance; }
 h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); }
 h2 { font-size: 1.3rem; }
 p { margin: 0; }
@@ -68,6 +65,7 @@ svg.ic { width: 24px; height: 24px; flex: none; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .label { font-weight: 600; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 560px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 
@@ -79,7 +77,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; min-height: 44px; }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 
-.tcard { --tc: var(--accent); text-align: left; display: flex; align-items: center; gap: 12px; padding: 14px; min-height: 76px;
+.tcard { --tc: var(--accent); text-align: left; display: flex; align-items: center; gap: 12px; padding: 14px 38px 14px 14px; min-height: 76px;
   border: 2px solid var(--line); border-radius: 12px; background: var(--surface); position: relative; }
 .tcard[aria-pressed="true"] { border-color: var(--tc); background: var(--surface-2); background: color-mix(in srgb, var(--tc) 9%, var(--surface)); }
 .ticon { width: 44px; height: 44px; border-radius: 50%; background: var(--tc); color: var(--on-c); display: grid; place-items: center; flex: none; }
@@ -89,27 +87,29 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tick { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; color: transparent; }
 .tick svg { width: 14px; height: 14px; }
 .tcard[aria-pressed="true"] .tick { background: var(--tc); border-color: var(--tc); color: var(--on-c); }
-.tcard { padding-right: 38px; }
 
 .qtop { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-.tbadge { --tc: var(--accent); display: inline-flex; align-items: center; gap: 8px; background: var(--tc); color: var(--on-c); border-radius: 999px; padding: 4px 14px 4px 6px; font-weight: 600; font-size: 0.92rem; }
+.tbadge { display: inline-flex; align-items: center; gap: 8px; background: var(--tc, var(--accent)); color: var(--on-c); border-radius: 999px; padding: 4px 14px 4px 6px; font-weight: 600; font-size: 0.92rem; }
 .tbadge svg.ic { width: 20px; height: 20px; }
 .meta { font-weight: 600; color: var(--muted); font-size: 0.95rem; }
-.segs { display: flex; gap: 4px; }
+.segs { display: flex; gap: 3px; }
 .seg { flex: 1; height: 8px; border-radius: 4px; background: var(--line); min-width: 0; }
 .seg.ok { background: var(--good); }
 .seg.no { background: var(--bad); }
 .seg.cur { background: var(--tc, var(--accent)); }
+.kind { align-self: flex-start; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
 
 .q { font-family: var(--font-head); font-size: clamp(1.15rem, 3.6vw, 1.45rem); line-height: 1.35; font-weight: 500; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 0.92rem; }
 .opts { display: flex; flex-direction: column; gap: 10px; }
 .opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 14px; min-height: 56px; display: flex; gap: 14px; align-items: center; animation: rise 0.25s ease both; }
-.opt:nth-child(2) { animation-delay: 0.04s; } .opt:nth-child(3) { animation-delay: 0.08s; } .opt:nth-child(4) { animation-delay: 0.12s; }
 .opt .letter { width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 600; flex: none; }
 .opt .txt { flex: 1; min-width: 0; }
 .opt .res { width: 24px; height: 24px; flex: none; }
 .opt:hover:not(:disabled) { border-color: var(--tc, var(--accent)); }
 .opt:disabled { cursor: default; color: var(--ink); }
+.opt[aria-pressed="true"] { border-color: var(--ink); background: var(--surface-2); }
+.opt[aria-pressed="true"] .letter { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 .opt.right { background: var(--good-bg); border-color: var(--good); }
 .opt.right .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
 .opt.right .res { color: var(--good); }
@@ -117,11 +117,54 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
 .opt.wrong .res { color: var(--bad); }
 .opt.dim { opacity: 0.6; }
+.figgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.opt.fig { flex-direction: column; align-items: stretch; gap: 8px; }
+.opt.fig svg { width: 100%; height: auto; display: block; }
+.opt.fig .top { display: flex; justify-content: space-between; align-items: center; }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.mrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 14px; align-items: center; padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); }
+@media (max-width: 560px) { .mrow { grid-template-columns: minmax(0, 1fr); } }
+.mrow.right { border-color: var(--good); background: var(--good-bg); }
+.mrow.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.mtxt svg { width: 100%; max-width: 300px; height: auto; display: block; }
+.mtxt .lab { display: block; font-weight: 600; color: var(--muted); font-size: 0.85rem; margin-bottom: 4px; }
+.cgrp { display: flex; flex-wrap: wrap; gap: 8px; }
+.cbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; min-height: 44px; }
+.cbtn[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.cbtn:disabled { cursor: default; }
+select.sel { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-height: 44px; width: 100%; }
+.corr { grid-column: 1 / -1; color: var(--good); font-weight: 600; font-size: 0.92rem; }
+
+.orow { display: flex; align-items: center; gap: 10px; border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px 8px 12px; background: var(--surface); }
+.orow.right { border-color: var(--good); background: var(--good-bg); }
+.orow.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.orow .n { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 600; flex: none; font-size: 0.9rem; }
+.orow .otxt { flex: 1; min-width: 0; }
+.omv { display: flex; gap: 6px; }
+.mv { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 1rem; }
+.mv:disabled { opacity: 0.35; cursor: default; }
+
+.cloze { line-height: 2.5; font-size: 1.05rem; }
+.cloze select { font: inherit; color: var(--ink); background: var(--surface-2); border: 2px solid var(--line); border-radius: 8px; padding: 4px 8px; min-height: 40px; max-width: 100%; }
+.cloze select.right { border-color: var(--good); background: var(--good-bg); }
+.cloze select.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.cloze .fix { color: var(--good); font-weight: 600; font-size: 0.9rem; }
+.numin { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.numin input { font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 8em; min-height: 48px; }
+.numin input.right { border-color: var(--good); background: var(--good-bg); }
+.numin input.wrong { border-color: var(--bad); background: var(--bad-bg); }
+
+.sketch { width: 100%; max-width: 560px; height: auto; display: block; border-radius: 10px; border: 1px solid var(--line); }
+.reg { fill: transparent; cursor: pointer; }
+.reg:hover, .reg:focus { fill: rgba(10, 95, 138, 0.18); outline: none; }
+.reg.right { fill: rgba(29, 122, 74, 0.4); }
+.reg.wrong { fill: rgba(179, 54, 47, 0.4); }
 
 .fb { border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; animation: rise 0.25s ease both; }
 .fb.right { background: var(--good-bg); }
 .fb.wrong { background: var(--bad-bg); }
+.fb.note { background: var(--surface-2); border: 1px solid var(--line); }
 .fb .ft { font-weight: 700; font-size: 1.05rem; }
 .fb.right .ft { color: var(--good); }
 .fb.wrong .ft { color: var(--bad); }
@@ -133,7 +176,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .ring text { fill: var(--ink); font-family: var(--font-head); font-weight: 700; }
 .ring .sub { fill: var(--muted); font-family: var(--font-body); font-weight: 400; }
 .rtext { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
-.trow { --tc: var(--accent); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.trow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
 .trow .ticon { width: 36px; height: 36px; }
 .trow .ticon svg.ic { width: 20px; height: 20px; }
 .tbar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
@@ -141,12 +184,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
 summary { padding: 12px 14px; cursor: pointer; font-weight: 600; }
 details .dbody { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 6px; }
-.stack { display: flex; flex-direction: column; gap: 14px; }
 @media (prefers-reduced-motion: reduce) { .opt, .fb { animation: none; } .ring .fg { transition: none; } }
 </style>
 
-</head>
-<body>
+</head><body>
 <main>
   <div id="app"></div>
 </main>
@@ -158,65 +199,90 @@ var TOPICS = {
   monsun: "Monsun: Entstehung",
   land: "Landwirtschaft und Klimawandel"
 };
-var TF = ["Wahr", "Falsch"];
-var Q = [
-  { t: "faktoren", q: "Im Hochland von Tibet ist es auch im Sommer kühl. Welcher Klimafaktor ist die Hauptursache?", o: ["Höhenlage", "Nähe zum Meer", "Nord-Süd-Lage", "Nähe zu Gebirgen"], a: 0, e: "Mit zunehmender Höhe sinkt die Temperatur. Tibet liegt im Durchschnitt über 4000 m hoch." },
-  { t: "faktoren", q: "Auf Borneo ist es das ganze Jahr warm. Woran liegt das vor allem?", o: ["Es liegt weit im Landesinneren", "Es liegt am Äquator mit hoher Sonneneinstrahlung", "Es liegt in einem Hochgebirge", "Es liegt in der Nähe des Polarkreises"], a: 1, e: "Nord-Süd-Lage: Am Äquator steht die Sonne hoch, die Einstrahlung ist das ganze Jahr hoch." },
-  { t: "faktoren", q: "Was bedeutet Kontinentalität?", o: ["Je weiter vom Meer entfernt, desto größer die Temperaturunterschiede zwischen Sommer und Winter", "Je höher ein Ort liegt, desto kälter ist es", "Je weiter im Norden, desto weniger Niederschlag fällt", "Gebirge halten Regenwolken auf"], a: 0, e: "Land erwärmt sich schnell und kühlt schnell aus. Weit vom Meer ist das Klima daher extremer, zum Beispiel in der Mongolei." },
-  { t: "faktoren", q: "Cherrapunji erhält extrem viel Regen. Welcher Klimafaktor spielt dabei eine große Rolle?", o: ["Nähe zu Gebirgen (Steigungsregen)", "Kontinentalität", "Höhenlage über 5000 m", "Lage am Polarkreis"], a: 0, e: "Feuchte Luft wird am Gebirge zum Aufsteigen gezwungen, kühlt ab und regnet ab: Steigungsregen." },
-  { t: "faktoren", q: "Ein Klimafaktor ist ein Prozess oder Zustand, der Klima und Vegetation beeinflusst.", o: TF, a: 0, fixed: true, e: "So lautet die Definition aus deiner Mitschrift." },
-  { t: "faktoren", q: "Land erwärmt und kühlt sich langsamer ab als Wasser.", o: TF, a: 1, fixed: true, e: "Es ist umgekehrt: Land erwärmt und kühlt schneller als Wasser. Deshalb ist das Klima am Meer ausgeglichener." },
-
-  { t: "zonen", q: "Welche Klimazone herrscht in Hanoi?", o: ["Gemäßigte Klimazone", "Tropisches Wechselklima", "Subpolare Klimazone", "Passatklimazone"], a: 1, e: "Hanoi hat gleichbleibend hohe Temperaturen und einen Wechsel von Regen- und Trockenzeit (Vegetation: Feuchtsavanne, Monsunwald)." },
-  { t: "zonen", q: "Welche dieser Klimazonen gibt es in Europa nicht?", o: ["Gemäßigte Klimazone", "Subtropische Klimazone", "Äquatoriale Klimazone", "Klima der Hochgebirge"], a: 2, e: "In Europa fehlen die Passatklimazone, das tropische Wechselklima und die äquatoriale Klimazone." },
-  { t: "zonen", q: "Welche Vegetationszone passt zur Station Anadyr (subpolare Klimazone)?", o: ["Tundra", "Laub- und Mischwald", "Feuchtsavanne", "tropischer Regenwald"], a: 0, e: "Nur wenige Monate über 0 °C: Es wachsen niedrige Pflanzen mit flachen Wurzeln." },
-  { t: "zonen", q: "Shenyang liegt in der gemäßigten Klimazone. Welche Vegetation ist typisch?", o: ["Tundra", "Laub- und Mischwald", "Dornsavanne", "Mangrove"], a: 1, e: "Ausreichend hohe Temperaturen (7 Monate über 5 °C) und ganzjährig humid: Laub- und Mischwaldzone." },
-  { t: "zonen", q: "Welche Anpassung zeigen Pflanzen der Tundra?", o: ["Geringe Wuchshöhe, flache Wurzeln, kleine Blätter", "Tiefe Wurzeln und mehrere Baumschichten", "Dichtes Wurzelgeflecht gegen Austrocknung", "Wasserspeicherung in dicken Stämmen"], a: 0, e: "Kurze Vegetationszeit und Dauerfrostboden: Pflanzen bleiben niedrig und wurzeln flach." },
-  { t: "zonen", q: "Das tropische Wechselklima ist durch den Wechsel von Regen- und Trockenzeit gekennzeichnet.", o: TF, a: 0, fixed: true, e: "Das ist das Kernmerkmal dieser Zone, zum Beispiel in Indien und Südostasien." },
-
-  { t: "monsun", q: "Ab welcher jahreszeitlichen Änderung der Windrichtung spricht man von einem Monsun?", o: ["mindestens 45°", "mindestens 90°", "mindestens 120°", "genau 180°"], a: 2, e: "Monsun: großräumige Luftströmungen im Bereich der Passatzirkulation mit jahreszeitlichen Windrichtungsänderungen von mindestens 120°." },
-  { t: "monsun", q: "Aus welcher Richtung weht der Sommermonsun in Indien?", o: ["Nordost", "Südwest", "Nordwest", "Südost"], a: 1, e: "Der Südostpassat überquert den Äquator und wird zum Südwest-Monsun." },
-  { t: "monsun", q: "Welche Aussage zum Wintermonsun stimmt?", o: ["Er weht aus Südwest und bringt viel Regen", "Er weht aus Nordost und ist kühl und trocken", "Er weht aus Südost und ist heiß und feucht", "Er weht nur im Himalaya"], a: 1, e: "Der Nordostpassat kommt vom Land und bringt Trockenzeit nach Indien (Dezember bis Februar/März)." },
-  { t: "monsun", q: "Wo liegt die ITC im Juli über Indien?", o: ["Weit im Norden, über dem Hochland von Tibet und Nordindien", "Über dem südlichen Indischen Ozean", "Genau über dem Äquator", "Über dem Süden Afrikas"], a: 0, e: "Im Nordsommer steht die Sonne im Norden im Zenit, die ITC wird über Indien weit nach Norden gezogen." },
-  { t: "monsun", q: "Warum wandert die ITC im Jahresverlauf nach Norden und Süden?", o: ["Weil sich der Zenitstand der Sonne zwischen den Wendekreisen verschiebt", "Weil sich die Erde im Winter von der Sonne entfernt", "Weil die Passate ihre Richtung wechseln", "Weil sich das Meer abkühlt"], a: 0, e: "Durch die Schrägstellung der Erdachse wandert der Zenitstand, und die ITC folgt ihm." },
-  { t: "monsun", q: "Wo entsteht im Sommer das Tiefdruckgebiet, das den Südwest-Monsun antreibt?", o: ["Über dem Indischen Ozean", "Über dem erwärmten Hochland von Tibet und dem Land", "Über dem Äquator in Afrika", "Über dem Pazifik"], a: 1, e: "Das Land erwärmt sich stark, warme Luft steigt auf, am Boden entsteht ein Tiefdruckgebiet als Teil der ITC." },
-  { t: "monsun", q: "Warum bringt der Südwest-Monsun viel Regen?", o: ["Er nimmt über dem Indischen Ozean viel Feuchtigkeit auf und regnet beim Aufsteigen am Gebirge ab", "Er kommt trocken vom Land", "Er wird über dem Meer erwärmt und löst Wolken auf", "Er weht nur über der Wüste Thar"], a: 0, e: "Feuchte, warme Meeresluft steigt an West-Ghats, Dekkan und Himalaya auf, kühlt ab und regnet ab." },
-  { t: "monsun", q: "Im Winter liegt über dem Land (Indien/Tibet) ein Hochdruckgebiet und die ITC im Süden.", o: TF, a: 0, fixed: true, e: "Die Sonne steht im Süden im Zenit, die ITC liegt über dem südlichen Indischen Ozean, über dem Land herrscht Hochdruck." },
-  { t: "monsun", q: "Der Sommermonsun weht von Juni bis September.", o: TF, a: 0, fixed: true, e: "Der Wintermonsun dagegen weht von Dezember bis Februar/März." },
-
-  { t: "land", q: "Welche Bewässerungstechnik ist im Süden der Ostghats und im Hochland von Dekkan verbreitet?", o: ["Kanalbewässerung", "Tankbewässerung", "Tropfbewässerung", "Überflutungsbewässerung"], a: 1, e: "Tankbewässerung speichert Regenwasser in künstlichen Becken. Kanalbewässerung dominiert im Gangestiefland und an Flüssen." },
-  { t: "land", q: "Was bauen Landwirte vor allem während des Sommermonsuns an?", o: ["Hülsenfrüchte", "Mais, Reis und Hirse", "Weizen im Trockenen", "Nichts, die Felder liegen brach"], a: 1, e: "Im Sommermonsun gibt es viel Wasser: Mais, Reis und Hirse." },
-  { t: "land", q: "Wie nutzen Landwirte die Zeit des Wintermonsuns?", o: ["Hülsenfrüchte, die mit weniger Feuchtigkeit auskommen, und Reis mit Bewässerung", "Sie bauen nur Reis ohne Bewässerung an", "Sie lassen die Felder brach liegen", "Sie ernten Bananen im Regenwald"], a: 0, e: "In der Trockenzeit ist Wasser knapp. Es wachsen anspruchslosere Pflanzen oder bewässerter Reis." },
-  { t: "land", q: "Was passiert in der Vormonsunzeit im April und Mai mit den Feldern?", o: ["Sie liegen brach", "Sie werden überflutet", "Dort wird Reis geerntet", "Dort wird Mais ausgesät"], a: 0, e: "Es ist heiß und trocken, der Regen fehlt noch." },
-  { t: "land", q: "Wie verändert sich der indische Monsun durch den Klimawandel?", o: ["Er setzt früher ein und schwächt sich später ab", "Er wird zuverlässiger und gleichmäßiger", "Er verschwindet vollständig", "Er weht nur noch im Winter"], a: 0, e: "Außerdem verstärkt er sich: Überschwemmungen, Erdrutsche und Schlammlawinen werden häufiger." },
-  { t: "land", q: "Durch den Klimawandel werden Vorhersagen des Monsuns einfacher.", o: TF, a: 1, fixed: true, e: "Vorhersagen werden schwieriger, der Sommermonsun ist nicht mehr flächendeckend und bringt heftigere Niederschläge." },
-  { t: "land", q: "Welche Aussage beschreibt eine negative Auswirkung des Monsuns?", o: ["Wasser für den Reisanbau", "Auffüllen von Brunnen und Tanks", "Überschwemmungen und Erdrutsche bei Starkregen", "Sichere Ernte in jedem Jahr"], a: 2, e: "Der Monsun ist Segen (Wasser für die Landwirtschaft) und Fluch (Überschwemmungen, Dürre bei Ausbleiben)." },
-  { t: "land", q: "Asiens Landmasse erwärmt sich langsamer als das globale Mittel.", o: TF, a: 1, fixed: true, e: "Sie erwärmt sich nahezu doppelt so schnell wie das globale Mittel." }
-];
-
-
 var META = {
   faktoren: { desc: "Höhe, Meer, Gebirge, Breite", path: '<path d="M3 19 9 8l4 6 3-4 5 9z"/>' },
-  zonen: { desc: "Zonen und Vegetation", path: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18"/>' },
+  zonen: { desc: "Zonen und Klimadiagramme", path: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18"/>' },
   monsun: { desc: "ITC, Tief, Sommer und Winter", path: '<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/>' },
   land: { desc: "Bewässerung, Anbau, Wandel", path: '<path d="M12 21v-9M12 12c0-4 3-6 7-6 0 4-3 6-7 6zM12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>' },
   check: { path: '<path d="m5 12.5 4.5 4.5L19 7"/>' },
   cross: { path: '<path d="m6 6 12 12M18 6 6 18"/>' }
 };
-function ic(k) {
-  return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+var KIND = { mc: "Einfachauswahl", tf: "Wahr oder falsch", multi: "Mehrfachauswahl", match: "Zuordnung", order: "Reihenfolge", cloze: "Lückentext", num: "Zahl eintragen", hot: "Klick in die Skizze", gmc: "Skizze auswählen" };
+
+/* ---------- Grafiken ---------- */
+function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+function fmt(n) { return String(n).replace(".", ",").replace("-", "−"); }
+
+function climateSvg(T, P, tm, ps) {
+  var mt = sum(T) / 12, sp = sum(P), x0 = 30, x1 = 252, yb = 116, st = (x1 - x0) / 12, i;
+  T = T.map(function (v) { return v + (tm - mt); });
+  P = P.map(function (v) { return v * ps / sp; });
+  function ty(v) { return yb - v * 2; }
+  function py(p) { return yb - (p <= 100 ? p * 0.8 : 80 + (p - 100) * 0.08); }
+  var h = '<svg viewBox="0 0 260 200" role="img" aria-label="Klimadiagramm mit Temperaturkurve und Niederschlagssäulen">';
+  h += '<rect x="' + x0 + '" y="16" width="' + (x1 - x0) + '" height="160" fill="var(--surface)" stroke="var(--line)"/>';
+  [-20, 20, 40].forEach(function (v) { h += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + ty(v) + '" y2="' + ty(v) + '" stroke="var(--line)"/>'; });
+  [[-20, "−20"], [0, "0"], [20, "20"], [40, "40"]].forEach(function (t) {
+    h += '<text x="' + (x0 - 4) + '" y="' + (ty(t[0]) + 3.5) + '" font-size="10" text-anchor="end" fill="var(--muted)">' + t[1] + "</text>";
+  });
+  for (i = 0; i < 12; i++) {
+    var cx = x0 + (i + 0.5) * st, y = py(P[i]);
+    h += '<rect x="' + (cx - st / 2 + 1.5).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (st - 3).toFixed(1) + '" height="' + (yb - y).toFixed(1) + '" fill="var(--accent)" opacity="0.45"/>';
+    if (P[i] > 100) h += '<rect x="' + (cx - st / 2 + 1.5).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + (st - 3).toFixed(1) + '" height="' + (py(100) - y).toFixed(1) + '" fill="var(--accent)" opacity="0.9"/>';
+    h += '<text x="' + cx.toFixed(1) + '" y="192" font-size="10" text-anchor="middle" fill="var(--muted)">' + "JFMAMJJASOND".charAt(i) + "</text>";
+  }
+  h += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + yb + '" y2="' + yb + '" stroke="var(--ink)"/>';
+  h += '<polyline fill="none" stroke="var(--bad)" stroke-width="2.4" stroke-linejoin="round" points="' +
+    T.map(function (v, k) { return (x0 + (k + 0.5) * st).toFixed(1) + "," + ty(v).toFixed(1); }).join(" ") + '"/>';
+  h += '<text x="' + x0 + '" y="11" font-size="11" font-weight="600" fill="var(--bad)">' + fmt(tm) + ' °C</text>';
+  h += '<text x="' + x1 + '" y="11" font-size="11" font-weight="600" text-anchor="end" fill="var(--accent)">' + ps + " mm</text></svg>";
+  return h;
+}
+var DIAG = {
+  anadyr: climateSvg([-22, -22, -18, -11, -2, 5, 10, 9, 4, -4, -14, -20], [20, 18, 15, 14, 15, 23, 36, 42, 38, 32, 25, 20], -7.6, 336),
+  shenyang: climateSvg([-12, -8, 0, 9, 17, 22, 25, 24, 17, 10, 0, -9], [6, 9, 15, 42, 59, 92, 160, 150, 55, 38, 17, 8], 8.2, 689),
+  hanoi: climateSvg([17, 18, 21, 25, 28, 29, 29, 29, 28, 25, 21, 18], [20, 28, 45, 90, 190, 240, 300, 330, 260, 130, 40, 18], 24.0, 1760)
+};
+
+function monsunSvg(o) {
+  o = o || {};
+  var h = '<svg class="sketch" viewBox="0 0 360 230" role="img" aria-label="Skizze: Meer links, Land mit Gebirge rechts, Südwest links und Nordost rechts">';
+  h += '<rect width="360" height="230" fill="#e4f0f6"/><circle cx="310" cy="28" r="14" fill="#f6c343"/>';
+  h += '<rect x="0" y="172" width="150" height="58" fill="#5aa9d6"/>';
+  h += '<path d="M150 172 L250 168 L285 100 L305 125 L325 95 L360 140 L360 230 L150 230 Z" fill="#8fae5b"/>';
+  h += '<path d="M250 168 L285 100 L305 125 L325 95 L360 140 L360 168 Z" fill="#7a8a52"/>';
+  h += '<text x="8" y="18" font-size="13" font-weight="700" fill="#33505e">SW</text><text x="352" y="18" font-size="13" font-weight="700" text-anchor="end" fill="#33505e">NO</text>';
+  if (o.arrows) {
+    h += '<g stroke-width="4">' +
+      '<line x1="60" y1="158" x2="244" y2="158" stroke="#c0392b"/><polygon points="258,158 240,149 240,167" fill="#c0392b" stroke="none"/>' +
+      '<line x1="262" y1="146" x2="262" y2="58" stroke="#1f6fa8"/><polygon points="262,44 253,62 271,62" fill="#1f6fa8" stroke="none"/>' +
+      '<line x1="256" y1="44" x2="72" y2="44" stroke="#1f6fa8"/><polygon points="58,44 76,35 76,53" fill="#1f6fa8" stroke="none"/>' +
+      '<line x1="52" y1="52" x2="52" y2="138" stroke="#1f6fa8"/><polygon points="52,152 43,134 61,134" fill="#1f6fa8" stroke="none"/></g>';
+  }
+  if (o.clouds) {
+    h += '<ellipse cx="296" cy="82" rx="26" ry="14" fill="#8d99a3"/><ellipse cx="320" cy="90" rx="22" ry="12" fill="#7b8791"/><ellipse cx="274" cy="90" rx="20" ry="11" fill="#7b8791"/>' +
+      '<g stroke="#3f78a0" stroke-width="2.5" stroke-linecap="round"><line x1="282" y1="106" x2="279" y2="120"/><line x1="296" y1="106" x2="293" y2="120"/><line x1="310" y1="106" x2="307" y2="120"/><line x1="324" y1="106" x2="321" y2="120"/></g>';
+  }
+  if (o.markers) {
+    [[1, 100, 128], [2, 205, 128], [3, 140, 158], [4, 150, 44], [5, 336, 62]].forEach(function (m) {
+      h += '<circle cx="' + m[1] + '" cy="' + m[2] + '" r="12" fill="#fff" stroke="#11222d" stroke-width="1.5"/><text x="' + m[1] + '" y="' + (m[2] + 5) + '" font-size="14" font-weight="700" text-anchor="middle" fill="#11222d">' + m[0] + "</text>";
+    });
+  }
+  (o.regions || []).forEach(function (r) {
+    h += '<rect class="reg" tabindex="0" role="button" aria-label="' + r.label + '" data-region="' + r.id + '" x="' + r.x + '" y="' + r.y + '" width="' + r.w + '" height="' + r.h + '"/>';
+  });
+  return h + "</svg>";
 }
 
-var app = document.getElementById("app");
-var sel = { topics: Object.keys(TOPICS), n: 12 };
-var run = null;
-
-function shuffle(arr) {
-  var a = arr.slice();
-  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
-  return a;
+function itcSvg(north) {
+  var h = '<svg viewBox="0 0 300 150" role="img" aria-label="Skizze mit Äquator, Wendekreisen und ITC">';
+  h += '<rect width="300" height="150" fill="#e4f0f6"/>';
+  h += '<g stroke="#33505e" stroke-width="1.2" fill="none"><line x1="0" y1="50" x2="300" y2="50" stroke-dasharray="5 4"/><line x1="0" y1="85" x2="300" y2="85"/><line x1="0" y1="120" x2="300" y2="120" stroke-dasharray="5 4"/></g>';
+  h += '<g font-size="10" fill="#33505e"><text x="6" y="45">nördl. Wendekreis</text><text x="6" y="80">Äquator</text><text x="6" y="115">südl. Wendekreis</text></g>';
+  if (north) h += '<path d="M0 26 C50 12 100 40 150 24 S250 10 300 24" fill="none" stroke="#e8771e" stroke-width="4"/><text x="268" y="17" font-size="12" font-weight="700" fill="#b45f06">ITC</text>';
+  else h += '<path d="M0 104 C50 92 100 118 150 102 S250 90 300 104" fill="none" stroke="#e8771e" stroke-width="4"/><text x="268" y="97" font-size="12" font-weight="700" fill="#b45f06">ITC</text>';
+  return h + "</svg>";
 }
-function countFor(topics) { return Q.filter(function (x) { return topics.indexOf(x.t) > -1; }).length; }
 
 var HERO = '<svg viewBox="0 0 680 170" role="img" aria-label="Sommermonsun aus Südwest und Wintermonsun aus Nordost über Höhenlinien">' +
   '<g fill="none" stroke="var(--line)" stroke-width="1.4">' +
@@ -226,8 +292,85 @@ var HERO = '<svg viewBox="0 0 680 170" role="img" aria-label="Sommermonsun aus S
   '<path d="M70 150C170 142 270 108 420 50" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"/>' +
   '<polygon points="438,40 404,46 424,70" fill="var(--accent)"/>' +
   '<path d="M610 24C530 34 420 62 285 120" fill="none" stroke="var(--mark)" stroke-width="7" stroke-linecap="round"/>' +
-  '<polygon points="262,130 290,102 300,132" fill="var(--mark)"/>' +
-  '</svg>';
+  '<polygon points="262,130 290,102 300,132" fill="var(--mark)"/></svg>';
+
+/* ---------- Fragen (30) ---------- */
+function G(opts, a) { return { opts: opts, a: a }; }
+var Q = [
+  /* Klimafaktoren (7) */
+  { t: "faktoren", type: "mc", q: "Im Hochland von Tibet ist es auch im Sommer kühl. Welcher Klimafaktor ist die Hauptursache?", o: ["Höhenlage", "Nähe zum Meer", "Nord-Süd-Lage", "Nähe zu Gebirgen"], a: 0, e: "Mit zunehmender Höhe sinkt die Temperatur." },
+  { t: "faktoren", type: "match", q: "Ordne jedem Beispiel den passenden Klimafaktor zu.", items: ["Hochland von Tibet: auch im Sommer kühl", "Cherrapunji: sehr viel Regen am Gebirgsrand", "Mongolei: heiße Sommer, sehr kalte Winter", "Borneo: das ganze Jahr warm"], choices: ["Höhenlage", "Nähe zu Gebirgen", "Nähe zum Meer (Kontinentalität)", "Nord-Süd-Lage"], a: [0, 1, 2, 3], e: "Gebirge zwingen feuchte Luft zum Aufsteigen (Steigungsregen). Weit vom Meer ist das Klima kontinental, am Äquator ist die Einstrahlung ganzjährig hoch." },
+  { t: "faktoren", type: "mc", q: "Was bedeutet Kontinentalität?", o: ["Je weiter vom Meer entfernt, desto größer die Temperaturunterschiede zwischen Sommer und Winter", "Je höher ein Ort liegt, desto kälter ist es", "Je weiter im Norden, desto weniger Niederschlag fällt", "Gebirge halten Regenwolken auf"], a: 0, e: "Land erwärmt und kühlt schneller als Wasser. Weit vom Meer ist das Klima daher extremer." },
+  { t: "faktoren", type: "multi", q: "Welche Faktoren beeinflussen das Klima in Asien? Wähle alle richtigen aus.", o: ["Höhenlage", "Nähe zum Meer", "Nähe zu Gebirgen", "Nord-Süd-Lage", "Einwohnerzahl", "Staatsgrenzen"], a: [0, 1, 2, 3], e: "Die vier Klimafaktoren sind Höhenlage, Nähe zu Gebirgen, Nähe zum Meer und Nord-Süd-Lage." },
+  { t: "faktoren", type: "order", q: "Bringe die Entstehung von Steigungsregen in die richtige Reihenfolge.", items: ["Feuchte Luft strömt gegen das Gebirge.", "Die Luft wird zum Aufsteigen gezwungen.", "Beim Aufsteigen kühlt sich die Luft ab.", "Wasserdampf kondensiert, es bilden sich Wolken.", "Es regnet am Gebirge ab."], e: "Aufsteigen, Abkühlung, Kondensation, Regen: So entsteht Steigungsregen, zum Beispiel in Cherrapunji." },
+  { t: "faktoren", type: "tf", q: "Land erwärmt und kühlt sich langsamer ab als Wasser.", a: false, e: "Es ist umgekehrt: Land erwärmt und kühlt schneller. Deshalb ist das Klima am Meer ausgeglichener." },
+  { t: "faktoren", type: "mc", q: "Warum ist es im Mittelsibirischen Bergland viel kälter als auf Borneo?", o: ["Sibirien liegt weit nördlich: Die Sonne steht flacher, die Einstrahlung ist geringer", "Sibirien liegt am Äquator", "Auf Borneo weht kein Wind", "Sibirien liegt tiefer als Borneo"], a: 0, e: "Nord-Süd-Lage: Am Äquator ist die Einstrahlung hoch, weit im Norden gering." },
+
+  /* Klimazonen (7) */
+  { t: "zonen", type: "match", q: "Ordne jedes Klimadiagramm der passenden Station zu.", items: [{ h: DIAG.hanoi, lab: "Diagramm A" }, { h: DIAG.anadyr, lab: "Diagramm B" }, { h: DIAG.shenyang, lab: "Diagramm C" }], choices: ["Anadyr", "Shenyang", "Hanoi"], a: [2, 0, 1], noShuffle: true, e: "Anadyr: sehr kalt, wenig Niederschlag. Shenyang: kalte Winter, warme Sommer mit Regen. Hanoi: ganzjährig warm, Regen- und Trockenzeit, hoher Niederschlag." },
+  { t: "zonen", type: "match", q: "Ordne jeder Station die Klimazone zu.", items: ["Anadyr", "Shenyang", "Hanoi"], choices: ["Subpolare Klimazone", "Gemäßigte Klimazone", "Tropisches Wechselklima", "Äquatoriale Klimazone"], a: [0, 1, 2], e: "Anadyr liegt im hohen Norden, Shenyang in den mittleren Breiten, Hanoi in den Tropen mit Regen- und Trockenzeit." },
+  { t: "zonen", type: "match", q: "Ordne jeder Station die passende Vegetationszone zu.", items: ["Anadyr", "Shenyang", "Hanoi"], choices: ["Tundra", "Laub- und Mischwald", "Feuchtsavanne und Monsunwald", "Dornsavanne"], a: [0, 1, 2], e: "Die Vegetation folgt dem Klima: Kälte und Dauerfrost (Tundra), ausreichend Wärme und Niederschlag (Laub- und Mischwald), Regen- und Trockenzeit (Feuchtsavanne)." },
+  { t: "zonen", type: "multi", q: "Welche dieser Klimazonen gibt es in Europa nicht? Wähle alle richtigen aus.", o: ["Gemäßigte Klimazone", "Passatklimazone", "Tropisches Wechselklima", "Äquatoriale Klimazone", "Subtropische Klimazone"], a: [1, 2, 3], e: "In Europa fehlen Passatklima, tropisches Wechselklima und die äquatoriale Zone." },
+  { t: "zonen", type: "gmc", q: "Welches Klimadiagramm gehört zu einem tropischen Wechselklima mit Regen- und Trockenzeit?", figs: [DIAG.anadyr, DIAG.shenyang, DIAG.hanoi], a: 2, sol: "Das Diagramm mit ganzjährig hohen Temperaturen und einem deutlichen Regenzeit-Maximum (Hanoi).", e: "Gleichbleibend hohe Temperaturen, hohe Niederschläge im Sommerhalbjahr und deutlich weniger im Winter: tropisches Wechselklima." },
+  { t: "zonen", type: "mc", q: "Welche Anpassung zeigen Pflanzen der Tundra?", o: ["Geringe Wuchshöhe, flache Wurzeln, kleine Blätter", "Tiefe Wurzeln und mehrere Baumschichten", "Dichtes Wurzelgeflecht gegen Austrocknung", "Wasserspeicherung in dicken Stämmen"], a: 0, e: "Kurze Vegetationszeit und Dauerfrostboden: Pflanzen bleiben niedrig und wurzeln flach." },
+  { t: "zonen", type: "cloze", q: "Ergänze den Text zur Station Anadyr.", parts: ["Anadyr liegt in der ", G(["subpolaren", "gemäßigten", "tropischen"], 0), " Klimazone. Nur wenige Monate liegen über ", G(["0 °C", "20 °C", "30 °C"], 0), ", der wärmste Monat ist der ", G(["Januar", "Juli", "April"], 1), ". Der Niederschlag fällt überwiegend als ", G(["Schnee", "Regen", "Hagel"], 0), "."], e: "Subpolare Klimazone: 8 Monate unter 0 °C, wärmster Monat Juli, ganzjährig wenig Niederschlag, überwiegend als Schnee." },
+
+  /* Monsun (11) */
+  { t: "monsun", type: "num", q: "Ein Monsun hat eine jahreszeitliche Windrichtungsänderung von mindestens …", a: 120, unit: "Grad", e: "Definition: großräumige Luftströmungen im Bereich der Passatzirkulation mit jahreszeitlichen Windrichtungsänderungen von mindestens 120°." },
+  { t: "monsun", type: "mc", q: "Aus welcher Richtung weht der Sommermonsun in Indien?", o: ["Nordost", "Südwest", "Nordwest", "Südost"], a: 1, e: "Der Südostpassat überquert den Äquator und wird zum Südwest-Monsun." },
+  { t: "monsun", type: "match", q: "Gehört die Aussage zum Sommermonsun oder zum Wintermonsun?", items: ["weht aus Südwest", "kühl und trocken", "Regenzeit", "Hochdruckgebiet über dem Land", "Tiefdruckgebiet über dem Land", "weht aus Nordost"], choices: ["Sommermonsun", "Wintermonsun"], a: [0, 1, 0, 1, 0, 1], e: "Sommer: Südwest, Tief über dem Land, Regenzeit. Winter: Nordost, Hoch über dem Land, kühl und trocken." },
+  { t: "monsun", type: "gmc", q: "Welche Skizze zeigt die Lage der ITC im Juli?", figs: [itcSvg(false), itcSvg(true)], a: 1, sol: "Die Skizze, in der die ITC nördlich des nördlichen Wendekreises verläuft.", e: "Im Nordsommer steht die Sonne im Norden im Zenit, die ITC wird über Indien weit nach Norden gezogen." },
+  { t: "monsun", type: "order", q: "Bringe die Entstehung des Sommermonsuns in die richtige Reihenfolge.", items: ["Der Zenitstand der Sonne wandert nach Norden, die ITC folgt.", "Das Hochland von Tibet erwärmt sich, warme Luft steigt auf, ein Tiefdruckgebiet entsteht.", "Der Südostpassat überquert den Äquator und wird zum Südwest-Monsun.", "Der Südwest-Monsun nimmt viel Feuchtigkeit vom Indischen Ozean auf.", "Die feuchte Luft steigt am Gebirge auf, kühlt ab und es regnet stark."], e: "Zenitstand, ITC, Tiefdruck über Land, Südwest-Monsun mit Feuchtigkeit, Steigungsregen." },
+  { t: "monsun", type: "match", q: "Beschrifte die Skizze zum Sommermonsun: Welche Nummer steht für welchen Begriff?", fig: monsunSvg({ arrows: true, clouds: true, markers: true }), items: ["Nummer 1", "Nummer 2", "Nummer 3", "Nummer 4", "Nummer 5"], choices: ["Hochdruckgebiet über dem Meer", "Tiefdruckgebiet über dem Land", "Südwest-Monsun am Boden", "Rückströmung in der Höhe", "Wolken und Regen am Gebirge"], a: [0, 1, 2, 3, 4], noShuffle: true, e: "Über dem kühleren Meer herrscht Hochdruck, über dem erwärmten Land Tiefdruck. Am Boden weht der Monsun vom Meer zum Land, in der Höhe strömt die Luft zurück." },
+  { t: "monsun", type: "hot", q: "Klicke auf die Seite der Skizze, auf der sich im Sommer die Luft stärker erwärmt und ein Tiefdruckgebiet entsteht.", svgOpts: { regions: [{ id: "sea", label: "Meer", x: 0, y: 0, w: 150, h: 230 }, { id: "land", label: "Land", x: 150, y: 0, w: 210, h: 230 }] }, a: "land", sol: "Auf der Landseite.", e: "Land erwärmt sich im Sommer stärker als das Meer. Die warme Luft steigt auf, am Boden entsteht ein Tiefdruckgebiet." },
+  { t: "monsun", type: "hot", q: "Klicke auf die Stelle, an der der Südwest-Monsun besonders viel Niederschlag bringt.", svgOpts: { regions: [{ id: "sea", label: "Meer", x: 0, y: 0, w: 150, h: 230 }, { id: "flat", label: "Flachland", x: 150, y: 0, w: 100, h: 230 }, { id: "mountain", label: "Gebirge", x: 250, y: 0, w: 110, h: 230 }] }, a: "mountain", sol: "Am Gebirge auf der rechten Seite.", e: "Am Gebirge (West-Ghats, Dekkan, Himalaya) steigt die feuchte Luft auf, kühlt ab und regnet ab." },
+  { t: "monsun", type: "mc", q: "Warum wandert die ITC im Jahresverlauf nach Norden und Süden?", o: ["Weil sich der Zenitstand der Sonne zwischen den Wendekreisen verschiebt", "Weil sich die Erde im Winter von der Sonne entfernt", "Weil die Passate ihre Richtung wechseln", "Weil sich das Meer abkühlt"], a: 0, e: "Durch die Schrägstellung der Erdachse wandert der Zenitstand, und die ITC folgt ihm." },
+  { t: "monsun", type: "cloze", q: "Ergänze den Text zur Entstehung des Sommermonsuns.", parts: ["Im Sommer erwärmt sich das ", G(["Land", "Meer"], 0), " stärker als das Meer. Über dem Land entsteht ein ", G(["Tiefdruckgebiet", "Hochdruckgebiet"], 0), ". Der ", G(["Südostpassat", "Nordostpassat"], 0), " überquert den Äquator und wird zum ", G(["Südwest-Monsun", "Nordost-Monsun"], 0), ". Er nimmt viel Feuchtigkeit vom ", G(["Indischen Ozean", "Hochland von Dekkan"], 0), " auf."], e: "Das Land erwärmt sich stärker, über ihm entsteht Tiefdruck. Der Südostpassat wird nach dem Überqueren des Äquators zum feuchten Südwest-Monsun." },
+  { t: "monsun", type: "tf", q: "Der Wintermonsun bringt Indien die Regenzeit.", a: false, e: "Der Wintermonsun (Nordost) ist kühl und trocken und bringt die Trockenzeit. Der Sommermonsun bringt die Regenzeit." },
+
+  /* Landwirtschaft und Klimawandel (5) */
+  { t: "land", type: "match", q: "Ordne jeder Bewässerungstechnik die passende Beschreibung zu.", items: ["Kanalbewässerung", "Tankbewässerung", "Brunnenbewässerung"], choices: ["Wasser aus Flüssen wird über Kanäle auf die Felder geleitet", "Regenwasser wird in künstlichen Becken gesammelt", "Grundwasser wird nach oben gepumpt"], a: [0, 1, 2], e: "Kanäle sind im Gangestiefland und an Flüssen verbreitet, Tanks vor allem im Süden und im Hochland von Dekkan, Brunnen unter anderem im Gangestiefland und am Rand der Wüste Thar." },
+  { t: "land", type: "match", q: "Wann bauen die Landwirte was an?", items: ["Reis, Mais und Hirse", "Hülsenfrüchte, die mit wenig Wasser auskommen", "Felder liegen brach", "Reis mit Bewässerung"], choices: ["Sommermonsun", "Wintermonsun", "Vormonsunzeit (April und Mai)"], a: [0, 1, 2, 1], e: "Im Sommermonsun gibt es viel Wasser. In der Trockenzeit wachsen Hülsenfrüchte oder bewässerter Reis, in der Vormonsunzeit ruhen die Felder." },
+  { t: "land", type: "multi", q: "Wie verändert der Klimawandel den indischen Monsun? Wähle alle richtigen aus.", o: ["Der Sommermonsun setzt früher ein", "Er schwächt sich später ab", "Starkregen und Überschwemmungen nehmen zu", "Vorhersagen werden schwieriger", "Der Monsun wird gleichmäßiger", "Der Monsun verschwindet ganz"], a: [0, 1, 2, 3], e: "Der Monsun beginnt früher, endet später, bringt heftigere Niederschläge und lässt sich schlechter vorhersagen." },
+  { t: "land", type: "match", q: "Segen oder Fluch? Ordne die Auswirkungen des Monsuns zu.", items: ["Wasser für den Reisanbau", "Überschwemmungen", "Erdrutsche und Schlammlawinen", "Brunnen und Tanks füllen sich", "Dürre bei verspätetem Monsun", "Grundlage für die Ernte"], choices: ["Segen", "Fluch"], a: [0, 1, 1, 0, 1, 0], e: "Der Monsun ist lebenswichtig für die Landwirtschaft, kann aber durch Starkregen oder Ausbleiben große Schäden verursachen." },
+  { t: "land", type: "tf", q: "Asiens Landmasse erwärmt sich langsamer als das globale Mittel.", a: false, e: "Sie erwärmt sich nahezu doppelt so schnell wie das globale Mittel." }
+];
+
+/* ---------- Logik ---------- */
+var app = document.getElementById("app");
+var sel = { topics: Object.keys(TOPICS), n: 15 };
+var run = null, cur = null;
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function range(n) { var r = []; for (var i = 0; i < n; i++) r.push(i); return r; }
+function ic(k) {
+  return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+}
+function iconRes(k) {
+  return '<svg class="res" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+}
+function countFor(topics) { return Q.filter(function (x) { return topics.indexOf(x.t) > -1; }).length; }
+function isGap(p) { return typeof p !== "string"; }
+function itemHtml(it) { return typeof it === "string" ? it : '<span class="lab">' + it.lab + "</span>" + it.h; }
+function itemLab(it) { return typeof it === "string" ? it : it.lab; }
+
+function solution(q) {
+  if (q.sol) return q.sol;
+  switch (q.type) {
+    case "mc": return q.o[q.a];
+    case "tf": return q.a ? "Wahr" : "Falsch";
+    case "multi": return q.a.map(function (i) { return q.o[i]; }).join("; ");
+    case "match": return q.items.map(function (it, i) { return itemLab(it) + ": " + q.choices[q.a[i]]; }).join("; ");
+    case "order": return q.items.map(function (s, i) { return (i + 1) + ". " + s; }).join(" ");
+    case "cloze": return q.parts.filter(isGap).map(function (g) { return g.opts[g.a]; }).join(", ");
+    case "num": return q.a + (q.unit ? " " + q.unit : "");
+  }
+  return "";
+}
 
 function start() {
   var total = countFor(sel.topics);
@@ -237,78 +380,201 @@ function start() {
       '<span class="ticon">' + ic(k) + '</span><span class="tbody"><span class="tname">' + TOPICS[k] + '</span><span class="tdesc">' + META[k].desc + " · " + n + ' Fragen</span></span>' +
       '<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + META.check.path + "</svg></span></button>";
   }).join("");
-  var nOpts = [8, 12, 20, 0].map(function (n) {
+  var nOpts = [10, 15, 20, 0].map(function (n) {
     return '<button class="chip" type="button" data-n="' + n + '" aria-pressed="' + (sel.n === n) + '">' + (n === 0 ? "Alle" : n) + "</button>";
   }).join("");
   var perRound = sel.n === 0 ? total : Math.min(sel.n, total);
   app.innerHTML =
     '<section class="hero">' + HERO +
       '<div class="hero-body"><span class="eyebrow">Wiederholung Klasse 8</span><h1>Klima Asiens</h1>' +
-      '<p class="muted">Teste dich vor dem Test: Klimafaktoren, Klimazonen und der indische Monsun. Nach jeder Antwort bekommst du die Erklärung.</p>' +
+      '<p class="muted">Teste dich vor dem Test mit 30 abwechslungsreichen Aufgaben: Auswählen, Zuordnen, Sortieren, Lücken füllen und in Skizzen klicken. Nach jeder Aufgabe bekommst du die Erklärung.</p>' +
       '<div class="legend"><span><i class="dot" style="background:var(--accent)"></i>Sommermonsun aus Südwest</span><span><i class="dot" style="background:var(--mark)"></i>Wintermonsun aus Nordost</span></div></div></section>' +
     '<section class="card"><div class="stack"><div class="label">Themen wählen</div><div class="grid">' + cards + "</div></div>" +
-    '<div class="stack"><div class="label">Anzahl der Fragen</div><div class="row">' + nOpts + "</div></div>" +
+    '<div class="stack"><div class="label">Anzahl der Aufgaben</div><div class="row">' + nOpts + "</div></div>" +
     '<div class="row"><button class="btn" id="go" type="button"' + (total === 0 ? " disabled" : "") + ">Quiz starten</button>" +
-    '<span class="muted">' + (total === 0 ? "Wähle mindestens ein Thema." : perRound + " Fragen in dieser Runde") + "</span></div></section>";
+    '<span class="muted">' + (total === 0 ? "Wähle mindestens ein Thema." : perRound + " Aufgaben in dieser Runde") + "</span></div></section>";
 }
 
 function begin(pool) {
-  run = { pool: pool, i: 0, results: [], answered: false, order: [] };
+  run = { pool: pool, i: 0, results: [] };
   question();
 }
-
 function streak() {
   var s = 0;
   for (var i = run.results.length - 1; i >= 0; i--) { if (run.results[i].ok) s++; else break; }
   return s;
 }
 
+function body(q) {
+  var h = "", i;
+  cur = { q: q, answered: false };
+  switch (q.type) {
+    case "mc": case "tf":
+      cur.order = q.type === "tf" ? [0, 1] : shuffle(range(q.o.length));
+      var o = q.type === "tf" ? ["Wahr", "Falsch"] : q.o;
+      h = '<div class="opts" id="opts">' + cur.order.map(function (orig, pos) {
+        return '<button class="opt" type="button" data-i="' + orig + '"><span class="letter">' + "ABCD".charAt(pos) + '</span><span class="txt">' + o[orig] + '</span><span class="res"></span></button>';
+      }).join("") + "</div>";
+      break;
+    case "gmc":
+      cur.order = shuffle(range(q.figs.length));
+      h = '<div class="figgrid" id="opts">' + cur.order.map(function (orig, pos) {
+        return '<button class="opt fig" type="button" data-i="' + orig + '"><span class="top"><span class="letter">' + "ABCD".charAt(pos) + '</span><span class="res"></span></span>' + q.figs[orig] + "</button>";
+      }).join("") + "</div>";
+      break;
+    case "multi":
+      cur.order = shuffle(range(q.o.length));
+      h = '<p class="hint">Mehrere Antworten sind möglich.</p><div class="opts" id="opts">' + cur.order.map(function (orig, pos) {
+        return '<button class="opt" type="button" aria-pressed="false" data-m="' + orig + '"><span class="letter">' + "ABCDEF".charAt(pos) + '</span><span class="txt">' + q.o[orig] + '</span><span class="res"></span></button>';
+      }).join("") + "</div>";
+      break;
+    case "match":
+      cur.rows = q.noShuffle ? range(q.items.length) : shuffle(range(q.items.length));
+      h = (q.fig ? q.fig : "") + '<div class="stack" id="rows">' + cur.rows.map(function (idx) {
+        var ctl;
+        if (q.choices.length <= 3) {
+          ctl = '<div class="cgrp">' + q.choices.map(function (c, j) { return '<button class="cbtn" type="button" aria-pressed="false" data-c="' + j + '">' + c + "</button>"; }).join("") + "</div>";
+        } else {
+          ctl = '<select class="sel" aria-label="Zuordnung"><option value="">Wählen …</option>' + q.choices.map(function (c, j) { return '<option value="' + j + '">' + c + "</option>"; }).join("") + "</select>";
+        }
+        return '<div class="mrow" data-row="' + idx + '"><div class="mtxt">' + itemHtml(q.items[idx]) + "</div>" + ctl + "</div>";
+      }).join("") + "</div>";
+      break;
+    case "order":
+      cur.seq = shuffle(range(q.items.length));
+      while (cur.seq.every(function (v, k) { return v === k; })) cur.seq = shuffle(range(q.items.length));
+      h = '<p class="hint">Verschiebe die Schritte mit den Pfeilen.</p><div class="stack" id="olist">' + orderHtml() + "</div>";
+      break;
+    case "cloze":
+      h = '<p class="cloze" id="cloze">' + q.parts.map(function (p, k) {
+        if (!isGap(p)) return p;
+        return '<select data-g="' + k + '" aria-label="Lücke"><option value="">…</option>' + p.opts.map(function (w, j) { return '<option value="' + j + '">' + w + "</option>"; }).join("") + "</select>";
+      }).join("") + "</p>";
+      break;
+    case "num":
+      h = '<div class="numin"><input id="numin" type="text" inputmode="numeric" autocomplete="off" aria-label="Antwort"><span>' + (q.unit || "") + "</span></div>";
+      break;
+    case "hot":
+      h = '<p class="hint">Tippe oder klicke direkt in die Skizze.</p>' + monsunSvg(q.svgOpts);
+      break;
+  }
+  if (["mc", "tf", "gmc", "hot"].indexOf(q.type) < 0) h += '<div class="row"><button class="btn" id="check" type="button">Prüfen</button></div>';
+  return h;
+}
+
+function orderHtml() {
+  return cur.seq.map(function (idx, pos) {
+    return '<div class="orow" data-pos="' + pos + '"><span class="n">' + (pos + 1) + '</span><span class="otxt">' + cur.q.items[idx] + '</span><span class="omv">' +
+      '<button class="mv" type="button" data-dir="-1" data-pos="' + pos + '" aria-label="nach oben"' + (pos === 0 ? " disabled" : "") + '>&#9650;</button>' +
+      '<button class="mv" type="button" data-dir="1" data-pos="' + pos + '" aria-label="nach unten"' + (pos === cur.seq.length - 1 ? " disabled" : "") + ">&#9660;</button></span></div>";
+  }).join("");
+}
+
 function question() {
-  var item = run.pool[run.i];
-  var order = item.o.map(function (_, i) { return i; });
-  if (!item.fixed) order = shuffle(order);
-  run.order = order; run.answered = false;
+  var q = run.pool[run.i];
   var segs = run.pool.map(function (_, i) {
     var c = i === run.i ? "cur" : (run.results[i] ? (run.results[i].ok ? "ok" : "no") : "");
     return '<span class="seg ' + c + '"></span>';
   }).join("");
-  var opts = order.map(function (orig, pos) {
-    return '<button class="opt" type="button" data-orig="' + orig + '"><span class="letter">' + "ABCD".charAt(pos) + '</span><span class="txt">' + item.o[orig] + '</span><span class="res"></span></button>';
-  }).join("");
   var s = streak();
+  var inner = body(q);
   app.innerHTML =
-    '<section class="card" style="--tc:var(--c-' + item.t + ')">' +
-    '<div class="qtop"><span class="tbadge" style="--tc:var(--c-' + item.t + ')">' + ic(item.t) + TOPICS[item.t] + "</span>" +
-    '<span class="meta">Frage ' + (run.i + 1) + " von " + run.pool.length + (s >= 2 ? " · Serie " + s : "") + "</span></div>" +
+    '<section class="card" style="--tc:var(--c-' + q.t + ')">' +
+    '<div class="qtop"><span class="tbadge" style="--tc:var(--c-' + q.t + ')">' + ic(q.t) + TOPICS[q.t] + "</span>" +
+    '<span class="meta">Aufgabe ' + (run.i + 1) + " von " + run.pool.length + (s >= 2 ? " · Serie " + s : "") + "</span></div>" +
     '<div class="segs" role="progressbar" aria-valuemin="1" aria-valuemax="' + run.pool.length + '" aria-valuenow="' + (run.i + 1) + '">' + segs + "</div>" +
-    '<p class="q">' + item.q + "</p>" +
-    '<div class="opts" id="opts">' + opts + "</div>" +
+    '<span class="kind">' + KIND[q.type] + "</span>" +
+    '<p class="q">' + q.q + "</p>" + inner +
     '<div id="fb" aria-live="polite"></div>' +
-    '<div class="row"><button class="btn" id="next" type="button" hidden>' + (run.i + 1 === run.pool.length ? "Zur Auswertung" : "Nächste Frage") + "</button></div></section>";
+    '<div class="row"><button class="btn" id="next" type="button" hidden>' + (run.i + 1 === run.pool.length ? "Zur Auswertung" : "Nächste Aufgabe") + "</button></div></section>";
 }
 
-function iconSvg(k) {
-  return '<svg class="res" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+function finish(ok) {
+  var q = cur.q;
+  cur.answered = true;
+  run.results.push({ item: q, ok: ok });
+  document.querySelectorAll(".seg")[run.i].className = "seg " + (ok ? "ok" : "no");
+  var check = document.getElementById("check"); if (check) check.hidden = true;
+  document.getElementById("fb").innerHTML = '<div class="fb ' + (ok ? "right" : "wrong") + '"><span class="ft">' + (ok ? "Richtig" : "Nicht ganz") + "</span>" +
+    (ok ? "" : "<span><strong>Richtig:</strong> " + solution(q) + "</span>") + "<span>" + q.e + "</span></div>";
+  var nb = document.getElementById("next"); nb.hidden = false; nb.focus();
 }
 
-function answer(orig) {
-  var item = run.pool[run.i];
-  run.answered = true;
-  var ok = orig === item.a;
-  run.results.push({ item: item, ok: ok });
-  var btns = document.querySelectorAll(".opt");
+function say(msg) { document.getElementById("fb").innerHTML = '<div class="fb note">' + msg + "</div>"; }
+
+function immediate(orig) {
+  var q = cur.q, correct = q.type === "tf" ? (q.a ? 0 : 1) : q.a, btns = document.querySelectorAll("#opts .opt");
   for (var i = 0; i < btns.length; i++) {
-    var o = parseInt(btns[i].getAttribute("data-orig"), 10);
+    var o = parseInt(btns[i].getAttribute("data-i"), 10);
     btns[i].disabled = true;
     var slot = btns[i].querySelector(".res");
-    if (o === item.a) { btns[i].classList.add("right"); slot.outerHTML = iconSvg("check"); }
-    else if (o === orig) { btns[i].classList.add("wrong"); slot.outerHTML = iconSvg("cross"); }
+    if (o === correct) { btns[i].classList.add("right"); slot.outerHTML = iconRes("check"); }
+    else if (o === orig) { btns[i].classList.add("wrong"); slot.outerHTML = iconRes("cross"); }
     else btns[i].classList.add("dim");
   }
-  var segs = document.querySelectorAll(".seg");
-  segs[run.i].className = "seg " + (ok ? "ok" : "no");
-  document.getElementById("fb").innerHTML = '<div class="fb ' + (ok ? "right" : "wrong") + '"><span class="ft">' + (ok ? "Richtig" : "Nicht ganz") + "</span><span>" + item.e + "</span></div>";
-  var nb = document.getElementById("next"); nb.hidden = false; nb.focus();
+  finish(orig === correct);
+}
+
+function evaluate() {
+  var q = cur.q, ok = true, i;
+  if (q.type === "multi") {
+    var btns = document.querySelectorAll("#opts .opt"), chosen = [];
+    for (i = 0; i < btns.length; i++) if (btns[i].getAttribute("aria-pressed") === "true") chosen.push(parseInt(btns[i].getAttribute("data-m"), 10));
+    if (!chosen.length) { say("Wähle mindestens eine Antwort aus."); return; }
+    for (i = 0; i < btns.length; i++) {
+      var m = parseInt(btns[i].getAttribute("data-m"), 10), isC = q.a.indexOf(m) > -1, picked = chosen.indexOf(m) > -1;
+      btns[i].disabled = true;
+      var slot = btns[i].querySelector(".res");
+      if (isC && picked) { btns[i].classList.add("right"); slot.outerHTML = iconRes("check"); }
+      else if (isC && !picked) { btns[i].classList.add("right"); btns[i].classList.add("dim"); ok = false; }
+      else if (!isC && picked) { btns[i].classList.add("wrong"); slot.outerHTML = iconRes("cross"); ok = false; }
+      else btns[i].classList.add("dim");
+    }
+    return finish(ok);
+  }
+  if (q.type === "match") {
+    var rows = document.querySelectorAll(".mrow"), vals = [];
+    for (i = 0; i < rows.length; i++) {
+      var sl = rows[i].querySelector("select"), v;
+      if (sl) v = sl.value; else { var p = rows[i].querySelector('.cbtn[aria-pressed="true"]'); v = p ? p.getAttribute("data-c") : ""; }
+      if (v === "") { say("Bitte ordne zuerst alle Zeilen zu."); return; }
+      vals.push(parseInt(v, 10));
+    }
+    for (i = 0; i < rows.length; i++) {
+      var idx = parseInt(rows[i].getAttribute("data-row"), 10), good = vals[i] === q.a[idx];
+      rows[i].classList.add(good ? "right" : "wrong");
+      Array.prototype.forEach.call(rows[i].querySelectorAll("button,select"), function (b) { b.disabled = true; });
+      if (!good) { ok = false; rows[i].insertAdjacentHTML("beforeend", '<div class="corr">Richtig: ' + q.choices[q.a[idx]] + "</div>"); }
+    }
+    return finish(ok);
+  }
+  if (q.type === "order") {
+    var orows = document.querySelectorAll(".orow");
+    for (i = 0; i < orows.length; i++) {
+      var g = cur.seq[i] === i;
+      orows[i].classList.add(g ? "right" : "wrong");
+      if (!g) ok = false;
+    }
+    Array.prototype.forEach.call(document.querySelectorAll(".mv"), function (b) { b.disabled = true; });
+    return finish(ok);
+  }
+  if (q.type === "cloze") {
+    var sels = document.querySelectorAll("#cloze select");
+    for (i = 0; i < sels.length; i++) if (sels[i].value === "") { say("Bitte fülle alle Lücken aus."); return; }
+    for (i = 0; i < sels.length; i++) {
+      var part = q.parts[parseInt(sels[i].getAttribute("data-g"), 10)], gd = parseInt(sels[i].value, 10) === part.a;
+      sels[i].classList.add(gd ? "right" : "wrong"); sels[i].disabled = true;
+      if (!gd) { ok = false; sels[i].insertAdjacentHTML("afterend", ' <span class="fix">(' + part.opts[part.a] + ")</span>"); }
+    }
+    return finish(ok);
+  }
+  if (q.type === "num") {
+    var inp = document.getElementById("numin"), raw = inp.value.replace(/[^0-9,.\-]/g, "").replace(",", ".");
+    if (raw === "") { say("Trage eine Zahl ein."); return; }
+    ok = parseFloat(raw) === q.a;
+    inp.classList.add(ok ? "right" : "wrong"); inp.disabled = true;
+    return finish(ok);
+  }
 }
 
 function next() {
@@ -321,7 +587,7 @@ function result() {
   var right = run.results.filter(function (r) { return r.ok; }).length;
   var pct = Math.round((right / total) * 100);
   var title = pct >= 90 ? "Bereit für den Test" : pct >= 70 ? "Gut vorbereitet" : pct >= 50 ? "Auf dem richtigen Weg" : "Noch etwas Übung";
-  var msg = pct >= 90 ? "Du beherrschst den Stoff sehr sicher." : pct >= 70 ? "Wiederhole noch die Fragen, die du falsch hattest." : pct >= 50 ? "Schau dir die schwächeren Themen unten noch einmal an." : "Lies deine Mitschrift noch einmal und starte das Quiz erneut.";
+  var msg = pct >= 90 ? "Du beherrschst den Stoff sehr sicher." : pct >= 70 ? "Wiederhole noch die Aufgaben, die du falsch hattest." : pct >= 50 ? "Schau dir die schwächeren Themen unten noch einmal an." : "Lies deine Mitschrift noch einmal und starte das Quiz erneut.";
   var rows = Object.keys(TOPICS).map(function (k) {
     var rs = run.results.filter(function (r) { return r.item.t === k; });
     if (!rs.length) return "";
@@ -331,7 +597,7 @@ function result() {
   }).join("");
   var wrong = run.results.filter(function (r) { return !r.ok; });
   var review = wrong.length ? '<div class="stack"><div class="label">Das war falsch</div>' + wrong.map(function (r) {
-    return "<details><summary>" + r.item.q + '</summary><div class="dbody"><span><strong>Richtig:</strong> ' + r.item.o[r.item.a] + "</span><span class=\"muted\">" + r.item.e + "</span></div></details>";
+    return "<details><summary>" + r.item.q + '</summary><div class="dbody"><span><strong>Richtig:</strong> ' + solution(r.item) + '</span><span class="muted">' + r.item.e + "</span></div></details>";
   }).join("") + "</div>" : "";
   var C = 2 * Math.PI * 54;
   app.innerHTML =
@@ -339,7 +605,7 @@ function result() {
     '<svg class="ring" viewBox="0 0 140 140" role="img" aria-label="' + right + " von " + total + ' richtig"><circle class="bg" cx="70" cy="70" r="54" fill="none" stroke-width="12"/>' +
     '<circle class="fg" id="ringfg" cx="70" cy="70" r="54" fill="none" stroke-width="12" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '"/>' +
     '<text x="70" y="72" text-anchor="middle" font-size="30">' + pct + '%</text><text class="sub" x="70" y="94" text-anchor="middle" font-size="13">' + right + " von " + total + "</text></svg>" +
-    '<div class="rtext"><span class="eyebrow">Auswertung</span><h2>' + title + "</h2><p class=\"muted\">" + msg + "</p></div></div>" +
+    '<div class="rtext"><span class="eyebrow">Auswertung</span><h2>' + title + '</h2><p class="muted">' + msg + "</p></div></div>" +
     '<div class="stack"><div class="label">Nach Thema</div>' + rows + "</div>" + review +
     '<div class="row">' + (wrong.length ? '<button class="btn" id="redo" type="button">Fehler wiederholen (' + wrong.length + ")</button>" : "") +
     '<button class="btn ghost" id="again" type="button">Neues Quiz</button></div></section>';
@@ -357,8 +623,34 @@ app.addEventListener("click", function (e) {
   }
   var n = e.target.closest("[data-n]");
   if (n) { sel.n = parseInt(n.getAttribute("data-n"), 10); start(); return; }
-  var o = e.target.closest(".opt");
-  if (o) { if (run && !run.answered) answer(parseInt(o.getAttribute("data-orig"), 10)); return; }
+  if (cur && !cur.answered && run && document.getElementById("fb")) {
+    var q = cur.q;
+    var reg = e.target.closest("[data-region]");
+    if (reg && q.type === "hot") {
+      var id = reg.getAttribute("data-region"), ok = id === q.a;
+      Array.prototype.forEach.call(document.querySelectorAll(".reg"), function (r) {
+        if (r.getAttribute("data-region") === q.a) r.classList.add("right");
+        else if (r === reg) r.classList.add("wrong");
+        r.style.pointerEvents = "none";
+      });
+      finish(ok); return;
+    }
+    var op = e.target.closest(".opt");
+    if (op && op.hasAttribute("data-i")) { immediate(parseInt(op.getAttribute("data-i"), 10)); return; }
+    if (op && op.hasAttribute("data-m")) { op.setAttribute("aria-pressed", op.getAttribute("aria-pressed") === "true" ? "false" : "true"); return; }
+    var cb = e.target.closest(".cbtn");
+    if (cb) {
+      Array.prototype.forEach.call(cb.parentNode.children, function (s) { s.setAttribute("aria-pressed", "false"); });
+      cb.setAttribute("aria-pressed", "true"); return;
+    }
+    var mv = e.target.closest(".mv");
+    if (mv) {
+      var pos = parseInt(mv.getAttribute("data-pos"), 10), d = parseInt(mv.getAttribute("data-dir"), 10), tmp = cur.seq[pos];
+      cur.seq[pos] = cur.seq[pos + d]; cur.seq[pos + d] = tmp;
+      document.getElementById("olist").innerHTML = orderHtml(); return;
+    }
+    if (e.target.closest("#check")) { evaluate(); return; }
+  }
   var b = e.target.closest("button");
   if (!b) return;
   if (b.id === "go") {
@@ -371,17 +663,19 @@ app.addEventListener("click", function (e) {
 });
 
 document.addEventListener("keydown", function (e) {
-  if (!run || !document.getElementById("opts")) return;
+  if (!run || !cur || !document.getElementById("fb")) return;
+  var q = cur.q;
+  if (e.target && e.target.hasAttribute && e.target.hasAttribute("data-region") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); return; }
+  var tag = e.target && e.target.tagName;
+  if (tag === "INPUT" || tag === "SELECT") { if (e.key === "Enter" && !cur.answered) { var c = document.getElementById("check"); if (c) c.click(); } return; }
   var n = parseInt(e.key, 10);
-  if (!run.answered && n >= 1 && n <= run.order.length) answer(run.order[n - 1]);
-  else if (run.answered && e.key === "Enter") {
-    var nb = document.getElementById("next");
-    if (nb && document.activeElement !== nb) nb.click();
+  if (!cur.answered && (q.type === "mc" || q.type === "tf") && n >= 1 && n <= cur.order.length) immediate(cur.order[n - 1]);
+  else if (e.key === "Enter") {
+    if (cur.answered) { var nb = document.getElementById("next"); if (nb && document.activeElement !== nb) nb.click(); }
   }
 });
 
 start();
 </script>
 
-</body>
-</html>
+</body></html>
