@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klima-Quiz Asien</title>
+<style>
+:root {
+  /* Layout: Atlas-Gefühl. Ein Titelbild mit den beiden Monsunpfeilen, darunter große Themenkarten.
+     Jedes Thema hat seine eigene Farbe, die sich durch Frage, Fortschritt und Auswertung zieht. */
+  --bg: #edf2f5;
+  --surface: #ffffff;
+  --surface-2: #f5f8fa;
+  --ink: #11222d;
+  --muted: #53656f;
+  --line: #d2dde4;
+  --accent: #0a5f8a;
+  --accent-ink: #ffffff;
+  --mark: #ffe94a;
+  --mark-ink: #11222d;
+  --good: #1d7a4a;
+  --good-bg: #e0f2e8;
+  --bad: #b3362f;
+  --bad-bg: #fbe8e5;
+  --c-faktoren: #0a5f8a;
+  --c-zonen: #2b7a4b;
+  --c-monsun: #b45f06;
+  --c-land: #8c3f6a;
+  --on-c: #ffffff;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-head: Georgia, "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d181f; --surface: #162630; --surface-2: #1c2f3b; --ink: #e8eef2; --muted: #9db0bc; --line: #2c4251;
+    --accent: #5cb8e0; --accent-ink: #0d181f; --mark: #f2d94e; --mark-ink: #11222d;
+    --good: #66d19a; --good-bg: #173a2b; --bad: #ff8a80; --bad-bg: #3d211f;
+    --c-faktoren: #5cb8e0; --c-zonen: #6cd09a; --c-monsun: #f0a04b; --c-land: #e08fbd; --on-c: #0d181f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d181f; --surface: #162630; --surface-2: #1c2f3b; --ink: #e8eef2; --muted: #9db0bc; --line: #2c4251;
+  --accent: #5cb8e0; --accent-ink: #0d181f; --mark: #f2d94e; --mark-ink: #11222d;
+  --good: #66d19a; --good-bg: #173a2b; --bad: #ff8a80; --bad-bg: #3d211f;
+  --c-faktoren: #5cb8e0; --c-zonen: #6cd09a; --c-monsun: #f0a04b; --c-land: #e08fbd; --on-c: #0d181f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.5;
+  padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-head); line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); }
+h2 { font-size: 1.3rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+svg.ic { width: 24px; height: 24px; flex: none; }
+
+.hero { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.hero svg { display: block; width: 100%; height: auto; background: var(--surface-2); }
+.hero-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.92rem; font-weight: 600; margin-top: 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid var(--line); }
+.eyebrow { align-self: flex-start; background: var(--mark); color: var(--mark-ink); padding: 1px 8px; border-radius: 2px; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.label { font-weight: 600; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 12px 22px; min-height: 48px; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; min-height: 44px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.tcard { --tc: var(--accent); text-align: left; display: flex; align-items: center; gap: 12px; padding: 14px; min-height: 76px;
+  border: 2px solid var(--line); border-radius: 12px; background: var(--surface); position: relative; }
+.tcard[aria-pressed="true"] { border-color: var(--tc); background: var(--surface-2); background: color-mix(in srgb, var(--tc) 9%, var(--surface)); }
+.ticon { width: 44px; height: 44px; border-radius: 50%; background: var(--tc); color: var(--on-c); display: grid; place-items: center; flex: none; }
+.tbody { display: flex; flex-direction: column; min-width: 0; }
+.tname { font-weight: 600; line-height: 1.25; }
+.tdesc { color: var(--muted); font-size: 0.88rem; line-height: 1.3; }
+.tick { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; color: transparent; }
+.tick svg { width: 14px; height: 14px; }
+.tcard[aria-pressed="true"] .tick { background: var(--tc); border-color: var(--tc); color: var(--on-c); }
+.tcard { padding-right: 38px; }
+
+.qtop { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tbadge { --tc: var(--accent); display: inline-flex; align-items: center; gap: 8px; background: var(--tc); color: var(--on-c); border-radius: 999px; padding: 4px 14px 4px 6px; font-weight: 600; font-size: 0.92rem; }
+.tbadge svg.ic { width: 20px; height: 20px; }
+.meta { font-weight: 600; color: var(--muted); font-size: 0.95rem; }
+.segs { display: flex; gap: 4px; }
+.seg { flex: 1; height: 8px; border-radius: 4px; background: var(--line); min-width: 0; }
+.seg.ok { background: var(--good); }
+.seg.no { background: var(--bad); }
+.seg.cur { background: var(--tc, var(--accent)); }
+
+.q { font-family: var(--font-head); font-size: clamp(1.15rem, 3.6vw, 1.45rem); line-height: 1.35; font-weight: 500; text-wrap: balance; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { text-align: left; border: 2px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 14px; min-height: 56px; display: flex; gap: 14px; align-items: center; animation: rise 0.25s ease both; }
+.opt:nth-child(2) { animation-delay: 0.04s; } .opt:nth-child(3) { animation-delay: 0.08s; } .opt:nth-child(4) { animation-delay: 0.12s; }
+.opt .letter { width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; font-weight: 600; flex: none; }
+.opt .txt { flex: 1; min-width: 0; }
+.opt .res { width: 24px; height: 24px; flex: none; }
+.opt:hover:not(:disabled) { border-color: var(--tc, var(--accent)); }
+.opt:disabled { cursor: default; color: var(--ink); }
+.opt.right { background: var(--good-bg); border-color: var(--good); }
+.opt.right .letter { background: var(--good); border-color: var(--good); color: var(--surface); }
+.opt.right .res { color: var(--good); }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .letter { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.opt.wrong .res { color: var(--bad); }
+.opt.dim { opacity: 0.6; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.fb { border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; animation: rise 0.25s ease both; }
+.fb.right { background: var(--good-bg); }
+.fb.wrong { background: var(--bad-bg); }
+.fb .ft { font-weight: 700; font-size: 1.05rem; }
+.fb.right .ft { color: var(--good); }
+.fb.wrong .ft { color: var(--bad); }
+
+.result { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+.ring { width: 140px; height: 140px; flex: none; }
+.ring .bg { stroke: var(--line); }
+.ring .fg { stroke: var(--accent); transition: stroke-dashoffset 0.9s ease; }
+.ring text { fill: var(--ink); font-family: var(--font-head); font-weight: 700; }
+.ring .sub { fill: var(--muted); font-family: var(--font-body); font-weight: 400; }
+.rtext { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+.trow { --tc: var(--accent); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.trow .ticon { width: 36px; height: 36px; }
+.trow .ticon svg.ic { width: 20px; height: 20px; }
+.tbar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.tbar span { display: block; height: 100%; background: var(--tc); }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+summary { padding: 12px 14px; cursor: pointer; font-weight: 600; }
+details .dbody { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+@media (prefers-reduced-motion: reduce) { .opt, .fb { animation: none; } .ring .fg { transition: none; } }
+</style>
+
+</head>
+<body>
+<main>
+  <div id="app"></div>
+</main>
+
+<script>
+var TOPICS = {
+  faktoren: "Klimafaktoren",
+  zonen: "Klimazonen",
+  monsun: "Monsun: Entstehung",
+  land: "Landwirtschaft und Klimawandel"
+};
+var TF = ["Wahr", "Falsch"];
+var Q = [
+  { t: "faktoren", q: "Im Hochland von Tibet ist es auch im Sommer kühl. Welcher Klimafaktor ist die Hauptursache?", o: ["Höhenlage", "Nähe zum Meer", "Nord-Süd-Lage", "Nähe zu Gebirgen"], a: 0, e: "Mit zunehmender Höhe sinkt die Temperatur. Tibet liegt im Durchschnitt über 4000 m hoch." },
+  { t: "faktoren", q: "Auf Borneo ist es das ganze Jahr warm. Woran liegt das vor allem?", o: ["Es liegt weit im Landesinneren", "Es liegt am Äquator mit hoher Sonneneinstrahlung", "Es liegt in einem Hochgebirge", "Es liegt in der Nähe des Polarkreises"], a: 1, e: "Nord-Süd-Lage: Am Äquator steht die Sonne hoch, die Einstrahlung ist das ganze Jahr hoch." },
+  { t: "faktoren", q: "Was bedeutet Kontinentalität?", o: ["Je weiter vom Meer entfernt, desto größer die Temperaturunterschiede zwischen Sommer und Winter", "Je höher ein Ort liegt, desto kälter ist es", "Je weiter im Norden, desto weniger Niederschlag fällt", "Gebirge halten Regenwolken auf"], a: 0, e: "Land erwärmt sich schnell und kühlt schnell aus. Weit vom Meer ist das Klima daher extremer, zum Beispiel in der Mongolei." },
+  { t: "faktoren", q: "Cherrapunji erhält extrem viel Regen. Welcher Klimafaktor spielt dabei eine große Rolle?", o: ["Nähe zu Gebirgen (Steigungsregen)", "Kontinentalität", "Höhenlage über 5000 m", "Lage am Polarkreis"], a: 0, e: "Feuchte Luft wird am Gebirge zum Aufsteigen gezwungen, kühlt ab und regnet ab: Steigungsregen." },
+  { t: "faktoren", q: "Ein Klimafaktor ist ein Prozess oder Zustand, der Klima und Vegetation beeinflusst.", o: TF, a: 0, fixed: true, e: "So lautet die Definition aus deiner Mitschrift." },
+  { t: "faktoren", q: "Land erwärmt und kühlt sich langsamer ab als Wasser.", o: TF, a: 1, fixed: true, e: "Es ist umgekehrt: Land erwärmt und kühlt schneller als Wasser. Deshalb ist das Klima am Meer ausgeglichener." },
+
+  { t: "zonen", q: "Welche Klimazone herrscht in Hanoi?", o: ["Gemäßigte Klimazone", "Tropisches Wechselklima", "Subpolare Klimazone", "Passatklimazone"], a: 1, e: "Hanoi hat gleichbleibend hohe Temperaturen und einen Wechsel von Regen- und Trockenzeit (Vegetation: Feuchtsavanne, Monsunwald)." },
+  { t: "zonen", q: "Welche dieser Klimazonen gibt es in Europa nicht?", o: ["Gemäßigte Klimazone", "Subtropische Klimazone", "Äquatoriale Klimazone", "Klima der Hochgebirge"], a: 2, e: "In Europa fehlen die Passatklimazone, das tropische Wechselklima und die äquatoriale Klimazone." },
+  { t: "zonen", q: "Welche Vegetationszone passt zur Station Anadyr (subpolare Klimazone)?", o: ["Tundra", "Laub- und Mischwald", "Feuchtsavanne", "tropischer Regenwald"], a: 0, e: "Nur wenige Monate über 0 °C: Es wachsen niedrige Pflanzen mit flachen Wurzeln." },
+  { t: "zonen", q: "Shenyang liegt in der gemäßigten Klimazone. Welche Vegetation ist typisch?", o: ["Tundra", "Laub- und Mischwald", "Dornsavanne", "Mangrove"], a: 1, e: "Ausreichend hohe Temperaturen (7 Monate über 5 °C) und ganzjährig humid: Laub- und Mischwaldzone." },
+  { t: "zonen", q: "Welche Anpassung zeigen Pflanzen der Tundra?", o: ["Geringe Wuchshöhe, flache Wurzeln, kleine Blätter", "Tiefe Wurzeln und mehrere Baumschichten", "Dichtes Wurzelgeflecht gegen Austrocknung", "Wasserspeicherung in dicken Stämmen"], a: 0, e: "Kurze Vegetationszeit und Dauerfrostboden: Pflanzen bleiben niedrig und wurzeln flach." },
+  { t: "zonen", q: "Das tropische Wechselklima ist durch den Wechsel von Regen- und Trockenzeit gekennzeichnet.", o: TF, a: 0, fixed: true, e: "Das ist das Kernmerkmal dieser Zone, zum Beispiel in Indien und Südostasien." },
+
+  { t: "monsun", q: "Ab welcher jahreszeitlichen Änderung der Windrichtung spricht man von einem Monsun?", o: ["mindestens 45°", "mindestens 90°", "mindestens 120°", "genau 180°"], a: 2, e: "Monsun: großräumige Luftströmungen im Bereich der Passatzirkulation mit jahreszeitlichen Windrichtungsänderungen von mindestens 120°." },
+  { t: "monsun", q: "Aus welcher Richtung weht der Sommermonsun in Indien?", o: ["Nordost", "Südwest", "Nordwest", "Südost"], a: 1, e: "Der Südostpassat überquert den Äquator und wird zum Südwest-Monsun." },
+  { t: "monsun", q: "Welche Aussage zum Wintermonsun stimmt?", o: ["Er weht aus Südwest und bringt viel Regen", "Er weht aus Nordost und ist kühl und trocken", "Er weht aus Südost und ist heiß und feucht", "Er weht nur im Himalaya"], a: 1, e: "Der Nordostpassat kommt vom Land und bringt Trockenzeit nach Indien (Dezember bis Februar/März)." },
+  { t: "monsun", q: "Wo liegt die ITC im Juli über Indien?", o: ["Weit im Norden, über dem Hochland von Tibet und Nordindien", "Über dem südlichen Indischen Ozean", "Genau über dem Äquator", "Über dem Süden Afrikas"], a: 0, e: "Im Nordsommer steht die Sonne im Norden im Zenit, die ITC wird über Indien weit nach Norden gezogen." },
+  { t: "monsun", q: "Warum wandert die ITC im Jahresverlauf nach Norden und Süden?", o: ["Weil sich der Zenitstand der Sonne zwischen den Wendekreisen verschiebt", "Weil sich die Erde im Winter von der Sonne entfernt", "Weil die Passate ihre Richtung wechseln", "Weil sich das Meer abkühlt"], a: 0, e: "Durch die Schrägstellung der Erdachse wandert der Zenitstand, und die ITC folgt ihm." },
+  { t: "monsun", q: "Wo entsteht im Sommer das Tiefdruckgebiet, das den Südwest-Monsun antreibt?", o: ["Über dem Indischen Ozean", "Über dem erwärmten Hochland von Tibet und dem Land", "Über dem Äquator in Afrika", "Über dem Pazifik"], a: 1, e: "Das Land erwärmt sich stark, warme Luft steigt auf, am Boden entsteht ein Tiefdruckgebiet als Teil der ITC." },
+  { t: "monsun", q: "Warum bringt der Südwest-Monsun viel Regen?", o: ["Er nimmt über dem Indischen Ozean viel Feuchtigkeit auf und regnet beim Aufsteigen am Gebirge ab", "Er kommt trocken vom Land", "Er wird über dem Meer erwärmt und löst Wolken auf", "Er weht nur über der Wüste Thar"], a: 0, e: "Feuchte, warme Meeresluft steigt an West-Ghats, Dekkan und Himalaya auf, kühlt ab und regnet ab." },
+  { t: "monsun", q: "Im Winter liegt über dem Land (Indien/Tibet) ein Hochdruckgebiet und die ITC im Süden.", o: TF, a: 0, fixed: true, e: "Die Sonne steht im Süden im Zenit, die ITC liegt über dem südlichen Indischen Ozean, über dem Land herrscht Hochdruck." },
+  { t: "monsun", q: "Der Sommermonsun weht von Juni bis September.", o: TF, a: 0, fixed: true, e: "Der Wintermonsun dagegen weht von Dezember bis Februar/März." },
+
+  { t: "land", q: "Welche Bewässerungstechnik ist im Süden der Ostghats und im Hochland von Dekkan verbreitet?", o: ["Kanalbewässerung", "Tankbewässerung", "Tropfbewässerung", "Überflutungsbewässerung"], a: 1, e: "Tankbewässerung speichert Regenwasser in künstlichen Becken. Kanalbewässerung dominiert im Gangestiefland und an Flüssen." },
+  { t: "land", q: "Was bauen Landwirte vor allem während des Sommermonsuns an?", o: ["Hülsenfrüchte", "Mais, Reis und Hirse", "Weizen im Trockenen", "Nichts, die Felder liegen brach"], a: 1, e: "Im Sommermonsun gibt es viel Wasser: Mais, Reis und Hirse." },
+  { t: "land", q: "Wie nutzen Landwirte die Zeit des Wintermonsuns?", o: ["Hülsenfrüchte, die mit weniger Feuchtigkeit auskommen, und Reis mit Bewässerung", "Sie bauen nur Reis ohne Bewässerung an", "Sie lassen die Felder brach liegen", "Sie ernten Bananen im Regenwald"], a: 0, e: "In der Trockenzeit ist Wasser knapp. Es wachsen anspruchslosere Pflanzen oder bewässerter Reis." },
+  { t: "land", q: "Was passiert in der Vormonsunzeit im April und Mai mit den Feldern?", o: ["Sie liegen brach", "Sie werden überflutet", "Dort wird Reis geerntet", "Dort wird Mais ausgesät"], a: 0, e: "Es ist heiß und trocken, der Regen fehlt noch." },
+  { t: "land", q: "Wie verändert sich der indische Monsun durch den Klimawandel?", o: ["Er setzt früher ein und schwächt sich später ab", "Er wird zuverlässiger und gleichmäßiger", "Er verschwindet vollständig", "Er weht nur noch im Winter"], a: 0, e: "Außerdem verstärkt er sich: Überschwemmungen, Erdrutsche und Schlammlawinen werden häufiger." },
+  { t: "land", q: "Durch den Klimawandel werden Vorhersagen des Monsuns einfacher.", o: TF, a: 1, fixed: true, e: "Vorhersagen werden schwieriger, der Sommermonsun ist nicht mehr flächendeckend und bringt heftigere Niederschläge." },
+  { t: "land", q: "Welche Aussage beschreibt eine negative Auswirkung des Monsuns?", o: ["Wasser für den Reisanbau", "Auffüllen von Brunnen und Tanks", "Überschwemmungen und Erdrutsche bei Starkregen", "Sichere Ernte in jedem Jahr"], a: 2, e: "Der Monsun ist Segen (Wasser für die Landwirtschaft) und Fluch (Überschwemmungen, Dürre bei Ausbleiben)." },
+  { t: "land", q: "Asiens Landmasse erwärmt sich langsamer als das globale Mittel.", o: TF, a: 1, fixed: true, e: "Sie erwärmt sich nahezu doppelt so schnell wie das globale Mittel." }
+];
+
+
+var META = {
+  faktoren: { desc: "Höhe, Meer, Gebirge, Breite", path: '<path d="M3 19 9 8l4 6 3-4 5 9z"/>' },
+  zonen: { desc: "Zonen und Vegetation", path: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.5 3.5 14.5 0 18M12 3c-3.5 3.5-3.5 14.5 0 18"/>' },
+  monsun: { desc: "ITC, Tief, Sommer und Winter", path: '<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/>' },
+  land: { desc: "Bewässerung, Anbau, Wandel", path: '<path d="M12 21v-9M12 12c0-4 3-6 7-6 0 4-3 6-7 6zM12 15c0-3-2-5-6-5 0 3 2 5 6 5z"/>' },
+  check: { path: '<path d="m5 12.5 4.5 4.5L19 7"/>' },
+  cross: { path: '<path d="m6 6 12 12M18 6 6 18"/>' }
+};
+function ic(k) {
+  return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+}
+
+var app = document.getElementById("app");
+var sel = { topics: Object.keys(TOPICS), n: 12 };
+var run = null;
+
+function shuffle(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function countFor(topics) { return Q.filter(function (x) { return topics.indexOf(x.t) > -1; }).length; }
+
+var HERO = '<svg viewBox="0 0 680 170" role="img" aria-label="Sommermonsun aus Südwest und Wintermonsun aus Nordost über Höhenlinien">' +
+  '<g fill="none" stroke="var(--line)" stroke-width="1.4">' +
+  '<path d="M0 92C110 54 215 112 340 80S570 44 680 84"/><path d="M0 110C110 72 215 130 340 98S570 62 680 102"/>' +
+  '<path d="M0 128C110 90 215 148 340 116S570 80 680 120"/><path d="M0 146C110 108 215 166 340 134S570 98 680 138"/>' +
+  '<path d="M0 74C110 36 215 94 340 62S570 26 680 66"/><path d="M0 56C110 18 215 76 340 44S570 8 680 48"/></g>' +
+  '<path d="M70 150C170 142 270 108 420 50" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"/>' +
+  '<polygon points="438,40 404,46 424,70" fill="var(--accent)"/>' +
+  '<path d="M610 24C530 34 420 62 285 120" fill="none" stroke="var(--mark)" stroke-width="7" stroke-linecap="round"/>' +
+  '<polygon points="262,130 290,102 300,132" fill="var(--mark)"/>' +
+  '</svg>';
+
+function start() {
+  var total = countFor(sel.topics);
+  var cards = Object.keys(TOPICS).map(function (k) {
+    var n = Q.filter(function (x) { return x.t === k; }).length;
+    return '<button class="tcard" type="button" data-topic="' + k + '" aria-pressed="' + (sel.topics.indexOf(k) > -1) + '" style="--tc:var(--c-' + k + ')">' +
+      '<span class="ticon">' + ic(k) + '</span><span class="tbody"><span class="tname">' + TOPICS[k] + '</span><span class="tdesc">' + META[k].desc + " · " + n + ' Fragen</span></span>' +
+      '<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + META.check.path + "</svg></span></button>";
+  }).join("");
+  var nOpts = [8, 12, 20, 0].map(function (n) {
+    return '<button class="chip" type="button" data-n="' + n + '" aria-pressed="' + (sel.n === n) + '">' + (n === 0 ? "Alle" : n) + "</button>";
+  }).join("");
+  var perRound = sel.n === 0 ? total : Math.min(sel.n, total);
+  app.innerHTML =
+    '<section class="hero">' + HERO +
+      '<div class="hero-body"><span class="eyebrow">Wiederholung Klasse 8</span><h1>Klima Asiens</h1>' +
+      '<p class="muted">Teste dich vor dem Test: Klimafaktoren, Klimazonen und der indische Monsun. Nach jeder Antwort bekommst du die Erklärung.</p>' +
+      '<div class="legend"><span><i class="dot" style="background:var(--accent)"></i>Sommermonsun aus Südwest</span><span><i class="dot" style="background:var(--mark)"></i>Wintermonsun aus Nordost</span></div></div></section>' +
+    '<section class="card"><div class="stack"><div class="label">Themen wählen</div><div class="grid">' + cards + "</div></div>" +
+    '<div class="stack"><div class="label">Anzahl der Fragen</div><div class="row">' + nOpts + "</div></div>" +
+    '<div class="row"><button class="btn" id="go" type="button"' + (total === 0 ? " disabled" : "") + ">Quiz starten</button>" +
+    '<span class="muted">' + (total === 0 ? "Wähle mindestens ein Thema." : perRound + " Fragen in dieser Runde") + "</span></div></section>";
+}
+
+function begin(pool) {
+  run = { pool: pool, i: 0, results: [], answered: false, order: [] };
+  question();
+}
+
+function streak() {
+  var s = 0;
+  for (var i = run.results.length - 1; i >= 0; i--) { if (run.results[i].ok) s++; else break; }
+  return s;
+}
+
+function question() {
+  var item = run.pool[run.i];
+  var order = item.o.map(function (_, i) { return i; });
+  if (!item.fixed) order = shuffle(order);
+  run.order = order; run.answered = false;
+  var segs = run.pool.map(function (_, i) {
+    var c = i === run.i ? "cur" : (run.results[i] ? (run.results[i].ok ? "ok" : "no") : "");
+    return '<span class="seg ' + c + '"></span>';
+  }).join("");
+  var opts = order.map(function (orig, pos) {
+    return '<button class="opt" type="button" data-orig="' + orig + '"><span class="letter">' + "ABCD".charAt(pos) + '</span><span class="txt">' + item.o[orig] + '</span><span class="res"></span></button>';
+  }).join("");
+  var s = streak();
+  app.innerHTML =
+    '<section class="card" style="--tc:var(--c-' + item.t + ')">' +
+    '<div class="qtop"><span class="tbadge" style="--tc:var(--c-' + item.t + ')">' + ic(item.t) + TOPICS[item.t] + "</span>" +
+    '<span class="meta">Frage ' + (run.i + 1) + " von " + run.pool.length + (s >= 2 ? " · Serie " + s : "") + "</span></div>" +
+    '<div class="segs" role="progressbar" aria-valuemin="1" aria-valuemax="' + run.pool.length + '" aria-valuenow="' + (run.i + 1) + '">' + segs + "</div>" +
+    '<p class="q">' + item.q + "</p>" +
+    '<div class="opts" id="opts">' + opts + "</div>" +
+    '<div id="fb" aria-live="polite"></div>' +
+    '<div class="row"><button class="btn" id="next" type="button" hidden>' + (run.i + 1 === run.pool.length ? "Zur Auswertung" : "Nächste Frage") + "</button></div></section>";
+}
+
+function iconSvg(k) {
+  return '<svg class="res" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + META[k].path + "</svg>";
+}
+
+function answer(orig) {
+  var item = run.pool[run.i];
+  run.answered = true;
+  var ok = orig === item.a;
+  run.results.push({ item: item, ok: ok });
+  var btns = document.querySelectorAll(".opt");
+  for (var i = 0; i < btns.length; i++) {
+    var o = parseInt(btns[i].getAttribute("data-orig"), 10);
+    btns[i].disabled = true;
+    var slot = btns[i].querySelector(".res");
+    if (o === item.a) { btns[i].classList.add("right"); slot.outerHTML = iconSvg("check"); }
+    else if (o === orig) { btns[i].classList.add("wrong"); slot.outerHTML = iconSvg("cross"); }
+    else btns[i].classList.add("dim");
+  }
+  var segs = document.querySelectorAll(".seg");
+  segs[run.i].className = "seg " + (ok ? "ok" : "no");
+  document.getElementById("fb").innerHTML = '<div class="fb ' + (ok ? "right" : "wrong") + '"><span class="ft">' + (ok ? "Richtig" : "Nicht ganz") + "</span><span>" + item.e + "</span></div>";
+  var nb = document.getElementById("next"); nb.hidden = false; nb.focus();
+}
+
+function next() {
+  run.i++;
+  if (run.i >= run.pool.length) result(); else question();
+}
+
+function result() {
+  var total = run.results.length;
+  var right = run.results.filter(function (r) { return r.ok; }).length;
+  var pct = Math.round((right / total) * 100);
+  var title = pct >= 90 ? "Bereit für den Test" : pct >= 70 ? "Gut vorbereitet" : pct >= 50 ? "Auf dem richtigen Weg" : "Noch etwas Übung";
+  var msg = pct >= 90 ? "Du beherrschst den Stoff sehr sicher." : pct >= 70 ? "Wiederhole noch die Fragen, die du falsch hattest." : pct >= 50 ? "Schau dir die schwächeren Themen unten noch einmal an." : "Lies deine Mitschrift noch einmal und starte das Quiz erneut.";
+  var rows = Object.keys(TOPICS).map(function (k) {
+    var rs = run.results.filter(function (r) { return r.item.t === k; });
+    if (!rs.length) return "";
+    var ok = rs.filter(function (r) { return r.ok; }).length;
+    var p = Math.round((ok / rs.length) * 100);
+    return '<div class="trow" style="--tc:var(--c-' + k + ')"><span class="ticon">' + ic(k) + '</span><span class="tname">' + TOPICS[k] + '</span><span class="label">' + ok + " von " + rs.length + '</span><div class="tbar"><span style="width:' + p + '%"></span></div></div>';
+  }).join("");
+  var wrong = run.results.filter(function (r) { return !r.ok; });
+  var review = wrong.length ? '<div class="stack"><div class="label">Das war falsch</div>' + wrong.map(function (r) {
+    return "<details><summary>" + r.item.q + '</summary><div class="dbody"><span><strong>Richtig:</strong> ' + r.item.o[r.item.a] + "</span><span class=\"muted\">" + r.item.e + "</span></div></details>";
+  }).join("") + "</div>" : "";
+  var C = 2 * Math.PI * 54;
+  app.innerHTML =
+    '<section class="card"><div class="result">' +
+    '<svg class="ring" viewBox="0 0 140 140" role="img" aria-label="' + right + " von " + total + ' richtig"><circle class="bg" cx="70" cy="70" r="54" fill="none" stroke-width="12"/>' +
+    '<circle class="fg" id="ringfg" cx="70" cy="70" r="54" fill="none" stroke-width="12" stroke-linecap="round" transform="rotate(-90 70 70)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + C.toFixed(1) + '"/>' +
+    '<text x="70" y="72" text-anchor="middle" font-size="30">' + pct + '%</text><text class="sub" x="70" y="94" text-anchor="middle" font-size="13">' + right + " von " + total + "</text></svg>" +
+    '<div class="rtext"><span class="eyebrow">Auswertung</span><h2>' + title + "</h2><p class=\"muted\">" + msg + "</p></div></div>" +
+    '<div class="stack"><div class="label">Nach Thema</div>' + rows + "</div>" + review +
+    '<div class="row">' + (wrong.length ? '<button class="btn" id="redo" type="button">Fehler wiederholen (' + wrong.length + ")</button>" : "") +
+    '<button class="btn ghost" id="again" type="button">Neues Quiz</button></div></section>';
+  var fg = document.getElementById("ringfg");
+  requestAnimationFrame(function () { requestAnimationFrame(function () { fg.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1); }); });
+  run.wrongItems = wrong.map(function (r) { return r.item; });
+}
+
+app.addEventListener("click", function (e) {
+  var t = e.target.closest("[data-topic]");
+  if (t) {
+    var k = t.getAttribute("data-topic"), i = sel.topics.indexOf(k);
+    if (i > -1) sel.topics.splice(i, 1); else sel.topics.push(k);
+    start(); return;
+  }
+  var n = e.target.closest("[data-n]");
+  if (n) { sel.n = parseInt(n.getAttribute("data-n"), 10); start(); return; }
+  var o = e.target.closest(".opt");
+  if (o) { if (run && !run.answered) answer(parseInt(o.getAttribute("data-orig"), 10)); return; }
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.id === "go") {
+    var pool = shuffle(Q.filter(function (x) { return sel.topics.indexOf(x.t) > -1; }));
+    if (sel.n > 0) pool = pool.slice(0, sel.n);
+    begin(pool);
+  } else if (b.id === "next") next();
+  else if (b.id === "redo") begin(shuffle(run.wrongItems));
+  else if (b.id === "again") start();
+});
+
+document.addEventListener("keydown", function (e) {
+  if (!run || !document.getElementById("opts")) return;
+  var n = parseInt(e.key, 10);
+  if (!run.answered && n >= 1 && n <= run.order.length) answer(run.order[n - 1]);
+  else if (run.answered && e.key === "Enter") {
+    var nb = document.getElementById("next");
+    if (nb && document.activeElement !== nb) nb.click();
+  }
+});
+
+start();
+</script>
+
+</body>
+</html>
